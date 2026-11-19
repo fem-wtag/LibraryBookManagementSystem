@@ -1,11 +1,12 @@
 package com.library.domain.model;
 
+import com.library.domain.exception.LibraryException;
+
 public record Book(
         String isbn,
         String title,
         String author,
         String genre,
-        int publicationYear,
         int totalCopies,
         int availableCopies
 ) {
@@ -17,7 +18,7 @@ public record Book(
            throw new IllegalArgumentException("Title must not be blank");
        }
        if (author == null || author.isBlank()) {
-           throw new IllegalArgumentException("Title must not be blank");
+           throw new IllegalArgumentException("Author must not be blank");
        }
        if (genre == null || genre.isBlank()) {
            genre = "General";
@@ -33,30 +34,31 @@ public record Book(
        }
    }
 
-   public BookStatus status() {
-       return BookStatus.fromAvailableCopies(availableCopies);
-   }
-
-   public Book borrowOne() {
-       if (availableCopies <= 0) {
-           //throw custom book not available exception
+   public Book borrowCopy() throws LibraryException {
+       if (availableCopies == 0) {
+           throw new LibraryException(LibraryException.ErrorType.UNAVAILABLE, "No available copies for: " + title);
        }
-       return new Book(isbn, title, author, genre, publicationYear, totalCopies, availableCopies - 1);
+       return new Book(isbn, title, author, genre, totalCopies, availableCopies - 1);
    }
 
-   public Book returnOne() {
-        if (availableCopies >= totalCopies) {
-            throw new IllegalArgumentException("Cannot exceed total copies for ISBN: " + isbn);
-        }
-        return new Book(isbn, title, author, genre, publicationYear, totalCopies, availableCopies + 1);
-   }
-
-   public Book addCopies(int additionalCopies) {
-       if (additionalCopies <= 0) {
-           throw new IllegalArgumentException("Additional copies must be positive");
+   public Book returnCopy() throws LibraryException {
+       if (availableCopies == totalCopies) {
+           throw new LibraryException(LibraryException.ErrorType.INVALID_INPUT, "All copies are already in the library.");
        }
-       return new Book(isbn, title, author, genre, publicationYear,
-               totalCopies + additionalCopies,
-               availableCopies + additionalCopies);
+       return new Book(isbn, title, author, genre, totalCopies, availableCopies + 1);
+   }
+
+   public Book addStock(int extraCopies) throws IllegalArgumentException {
+       if (extraCopies < 1) throw new IllegalArgumentException("Extra copies must be positive");
+
+       return new Book(isbn, title, author, genre, totalCopies + extraCopies, availableCopies + extraCopies);
+   }
+
+   public String availableLabel() {
+       return switch (Integer.valueOf(availableCopies)) {
+           case Integer n when n == 0 -> "OUT OF STOCK";
+           case Integer n when n <= 2 -> "LOW STOCK (" + n + " left)";
+           case Integer n -> "AVAILABLE (" + n + "/" + totalCopies + ")";
+       };
    }
 }
