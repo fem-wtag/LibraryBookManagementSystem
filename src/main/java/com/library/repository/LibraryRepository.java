@@ -1,4 +1,4 @@
-package com.library.domain.port.out;
+package com.library.repository;
 
 import com.library.domain.model.Book;
 import com.library.domain.model.Loan;
@@ -6,7 +6,7 @@ import com.library.domain.model.Loan;
 import java.util.List;
 import java.util.Optional;
 
-public interface LibraryRepositoryPort {
+public interface LibraryRepository {
     void saveBook(Book book);
     Optional<Book> findBookByIsbn(String isbn);
     List<Book> findAllBooks();

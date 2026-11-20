@@ -1,6 +1,6 @@
 package com.library.domain.model;
 
-import com.library.domain.exception.LibraryException;
+import com.library.exception.LibraryException;
 
 public record Book(
         String isbn,
